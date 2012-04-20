@@ -1,0 +1,9 @@
+provider: 'AWS'
+aws_secret_access_key: 'YOUR_SECRET_ACCESS_KEY'
+aws_access_key_id: 'YOUR_SECRET_ACCESS_KEY_ID'
+
+ami_id: 'SOME-AMI'
+flavor_id: 'm1.large'
+
+key_name: 'some-key-pair'
+private_key_path: "~/.ssh/some-private-key.pem"
