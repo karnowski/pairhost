@@ -2,10 +2,20 @@ require "pairhost/version"
 require 'fog'
 require 'thor'
 require 'yaml'
+require 'fileutils'
 
 module Pairhost
+  def self.config_file
+    @config_file ||= File.expand_path('~/.pairhost/config.yml')
+  end
+
   def self.config
-    @config ||= YAML.load(File.open(File.expand_path('~/.pairhost/config.yml')))
+    @config ||= begin
+      unless File.exists? config_file
+        abort "No pairhost config found. First run 'pairhost init'."
+      end
+      YAML.load_file config_file
+    end
   end
 
   def self.instance_id
@@ -16,7 +26,7 @@ module Pairhost
     return @connection if @connection
 
     Fog.credentials = Fog.credentials.merge(
-      :private_key_path => config['private_key_path'], 
+      :private_key_path => config['private_key_path'],
     )
 
     @connection = Fog::Compute.new(
@@ -142,7 +152,7 @@ module Pairhost
       Pairhost.connection.servers.each do |server|
         puts server.tags['Name']
         puts server.inspect
-        puts 
+        puts
         puts
       end
     end
@@ -156,11 +166,12 @@ module Pairhost
 
     desc "init", "Setup your ~/.pairhost directory with default config"
     def init
-      
+      FileUtils.mkdir_p File.dirname(Pairhost.config_file)
+      FileUtils.cp(File.dirname(__FILE__) + '/../config.example.yml', Pairhost.config_file)
     end
 
-    private 
-    
+    private
+
     def display_status(server)
       server.reload
       puts "#{server.id}: #{server.tags['Name']}"
