@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.email       = ["larry@hickorywind.org"]
   s.homepage    = "http://www.github.com/karnowski/pairhost"
   s.summary     = %q{Automate creation of Relevance pairhost EC2 instances.}
-  s.description = %q{A Vagrant-like command line interface for creating, managing, and using EC2 pairhosts.}
+  s.description = %q{A Vagrant-like command line interface for creating, managing, and using EC2 instances for remote pairing.}
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
