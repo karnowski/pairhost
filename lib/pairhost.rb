@@ -59,7 +59,7 @@ module Pairhost
     destroy
     gem --> ignore
     halt
-    init --> ignore
+    init
     package --> ignore
     provision
     reload
@@ -84,15 +84,21 @@ module Pairhost
       display_status(server)
     end
 
+    desc "resume", "Start a stopped pairhost"
+    def resume
+      server = Pairhost.fetch
+      puts "Starting..."
+      Pairhost.start(server)
+      puts "started!"
+    end
+
     # TODO: create asks for a name, but gives you a default based on the $CWD and git initials, if any
     desc "up", "Create a new pairhost or start your stopped pairhost"
     def up
       server = Pairhost.fetch
 
       if server
-        puts "Starting..."
-        Pairhost.start(server)
-        puts "started!"
+        resume
       else
         puts "Provisioning..."
         server = Pairhost.create("DevOps Dev (LK FTW)")
@@ -102,11 +108,11 @@ module Pairhost
       display_status(server)
     end
 
-    map "stop" => :suspend
-    map "shutdown" => :suspend
-    map "halt" => :suspend
+    map "stop" => :halt
+    map "shutdown" => :halt
+    map "suspend" => :halt
 
-    desc "suspend", "Stop your pairhost"
+    desc "halt", "Stop your pairhost"
     def stop
       server = Pairhost.fetch
       puts "Shutting down..."
@@ -118,6 +124,8 @@ module Pairhost
     def attach
       puts "coming soon..."
     end
+
+    map "terminate" => :destroy
 
     desc "destroy", "Terminate your pairhost"
     def destroy
@@ -154,6 +162,7 @@ module Pairhost
     private 
     
     def display_status(server)
+      server.reload
       puts "#{server.id}: #{server.tags['Name']}"
       puts "State: #{server.state}"
       puts server.dns_name if server.dns_name
