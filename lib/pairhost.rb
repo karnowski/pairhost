@@ -11,10 +11,10 @@ module Pairhost
 
   def self.config
     @config ||= begin
-      unless File.exists? config_file
+      unless File.exists?(config_file)
         abort "No pairhost config found. First run 'pairhost init'."
       end
-      YAML.load_file config_file
+      YAML.load_file(config_file)
     end
   end
 
@@ -38,7 +38,8 @@ module Pairhost
 
   def self.create(name)
     server_options = {
-      "tags" => {"Name" => name},
+      "tags" => {"Name" => name, 
+                 "Created-By-Pairhost-Gem" => VERSION},
       "image_id" => config['ami_id'],
       "flavor_id" => config['flavor_id'],
       "key_name" => config['key_name'],
@@ -46,7 +47,17 @@ module Pairhost
 
     server = connection.servers.create(server_options)
     server.wait_for { ready? }
+
+    @instance_id = server.id
+    write_instance_id(@instance_id)
+
     server
+  end
+
+  def self.write_instance_id(instance_id)
+    File.open(File.expand_path('~/.pairhost/instance'), "w") do |f|
+      f.write(instance_id)
+    end
   end
 
   def self.start(server)
@@ -63,105 +74,90 @@ module Pairhost
     connection.servers.get(instance_id) if instance_id
   end
 
-=begin
-  vagrant commands:
-    box --> ignore?
-    destroy
-    gem --> ignore
-    halt
-    init
-    package --> ignore
-    provision
-    reload
-    resume
-    ssh
-    ssh-config --> ignore?
-    status
-    suspend
-    up
-=end
-
   class CLI < Thor
+    include Thor::Actions
+
     desc "ssh", "SSH to your pairhost"
     def ssh
       server = Pairhost.fetch
-      exec "ssh -A -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=QUIET pair@#{server.reload.dns_name}"
+      exec "ssh -A -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=QUIET pair@#{server.dns_name}"
     end
 
     desc "status", "Print the status of your pairhost"
     def status
       server = Pairhost.fetch
-      display_status(server)
+      puts "#{server.id}: #{server.tags['Name']}"
+      puts "State: #{server.state}"
+      puts server.dns_name if server.dns_name
     end
+
+    map "start" => :resume
 
     desc "resume", "Start a stopped pairhost"
     def resume
       server = Pairhost.fetch
       puts "Starting..."
-      Pairhost.start(server)
+      Pairhost.start(server.reload)
       puts "started!"
+
+      invoke :status
     end
 
-    # TODO: create asks for a name, but gives you a default based on the $CWD and git initials, if any
+    desc "create", "Provision a new pairhost; all future commands affect this pairhost"
+    def create
+      initials = `git config user.initials`.chomp.split("/").map(&:upcase).join(" ")
+      default_name = "something1 #{initials}"
+      name = ask_with_default("What to name your pairhost? [#{default_name}]", default_name)
+      puts "Name will be: #{name}"
+      puts "Provisioning..."
+      # server = Pairhost.create(name)
+      # puts "provisioning!"
+      # invoke :status
+    end
+
     desc "up", "Create a new pairhost or start your stopped pairhost"
     def up
       server = Pairhost.fetch
 
       if server
-        resume
+        invoke :resume
       else
-        puts "Provisioning..."
-        server = Pairhost.create("DevOps Dev (LK FTW)")
-        puts "provisioning!"
+        invoke :create
       end
-
-      display_status(server)
     end
 
-    map "stop" => :halt
-    map "shutdown" => :halt
-    map "suspend" => :halt
+    map "halt" => :stop
+    map "shutdown" => :stop
+    map "suspend" => :stop
 
-    desc "halt", "Stop your pairhost"
+    desc "stop", "Stop your pairhost"
     def stop
       server = Pairhost.fetch
       puts "Shutting down..."
-      Pairhost.shutdown(server)
+      Pairhost.stop(server)
       puts "shutdown!"
     end
 
-    desc "attach", "Start using an existing pairhost given its EC2 instance ID"
+    desc "attach", "All future commands affect this pairhost"
     def attach
-      puts "coming soon..."
+      instance_id = ask("EC2 Instance?")
+      Pairhost.write_instance_id(instance_id)
+      invoke :status
     end
 
     map "terminate" => :destroy
 
     desc "destroy", "Terminate your pairhost"
     def destroy
-      server = fetch
+      server = Pairhost.fetch
+      confirm = ask("Type 'yes' to confirm deleting '#{server.tags['Name']}'.\n>")
+
+      return unless confirm == "yes"
+
       puts "Destroying..."
       server.destroy
       server.wait_for { state == "terminated" }
       puts "destroyed!"
-    end
-
-    # TODO: this is just a spike, remove
-    desc "list", "List all instances on your EC2 account"
-    def list
-      Pairhost.connection.servers.each do |server|
-        puts server.tags['Name']
-        puts server.inspect
-        puts
-        puts
-      end
-    end
-
-    # TODO: this is just a spike, remove
-    desc "initials", "DEBUG: just a test task for getting the current git initials"
-    def initials
-      initials = `git config user.initials`.chomp.split("/").map(&:upcase).join(" ")
-      puts initials.inspect
     end
 
     desc "init", "Setup your ~/.pairhost directory with default config"
@@ -170,14 +166,17 @@ module Pairhost
       FileUtils.cp(File.dirname(__FILE__) + '/../config.example.yml', Pairhost.config_file)
     end
 
-    private
-
-    def display_status(server)
-      server.reload
-      puts "#{server.id}: #{server.tags['Name']}"
-      puts "State: #{server.state}"
-      puts server.dns_name if server.dns_name
+    desc "provision", "Freshen the Chef recipes"
+    def provision
+      puts "coming soon..."
     end
 
+    private
+
+    def ask_with_default(question, default)
+      answer = ask(question)
+      answer = answer.strip.empty? ? default : answer
+      answer
+    end
   end
 end
