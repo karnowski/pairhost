@@ -19,7 +19,13 @@ module Pairhost
   end
 
   def self.instance_id
-    @instance_id ||= File.read(File.expand_path('~/.pairhost/instance')).chomp
+    @instance_id ||= begin
+      file = File.expand_path('~/.pairhost/instance')
+      unless File.exists?(file)
+        abort "No pairhost instance found. Please create or attach to one."
+      end
+      File.read(file).chomp
+    end
   end
 
   def self.connection
@@ -38,7 +44,7 @@ module Pairhost
 
   def self.create(name)
     server_options = {
-      "tags" => {"Name" => name, 
+      "tags" => {"Name" => name,
                  "Created-By-Pairhost-Gem" => VERSION},
       "image_id" => config['ami_id'],
       "flavor_id" => config['flavor_id'],
