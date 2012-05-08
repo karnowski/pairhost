@@ -8,14 +8,14 @@ Gem::Specification.new do |s|
   s.authors     = ["Larry Karnowski"]
   s.email       = ["larry@hickorywind.org"]
   s.homepage    = "http://www.github.com/karnowski/pairhost"
-  s.summary     = %q{Automate creation of Relevance pairhost EC2 instances.}
-  s.description = %q{A Vagrant-like command line interface for creating, managing, and using EC2 instances for remote pairing.}
+  s.summary     = %q{Automate creation of Relevance-style pairhost EC2 instances.}
+  s.description = %q{A Vagrant-like command line interface for creating, managing, and using EC2 instances for remote pairing like we do at Relevance.}
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
 
-  s.add_runtime_dependency "fog", "1.1.2"
+  s.add_runtime_dependency "fog", "1.3.1"
   s.add_runtime_dependency "thor", "0.14.6"
 
   s.add_development_dependency 'rspec', '~> 2.9.0'
