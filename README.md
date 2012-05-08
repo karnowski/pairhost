@@ -1,11 +1,10 @@
 # Pairhost
 
-Create an EC2 instance for Relevance, Inc. remote pairing!  It creates the instance and reports the public DNS name right from the command line.
+Manage EC2 instances for remote pairing the style that Relevance prefers.
 
-## How To Use
+## How to Use
 
-    # install bundler
-    bundle install
-    cp config.example.yml config.yml
-    # edit the config to use real EC2 & AMI stuff (ask me if you need it)
-    #TODO: ./pairhost up
+    gem install pairhost
+    pairhost init
+    # edit ~/.pairhost/config.yml to use your real EC2 & AMI settings
+    pairhost up
