@@ -115,9 +115,9 @@ module Pairhost
       name = ask_with_default("What to name your pairhost? [#{default_name}]", default_name)
       puts "Name will be: #{name}"
       puts "Provisioning..."
-      # server = Pairhost.create(name)
-      # puts "provisioning!"
-      # invoke :status
+      server = Pairhost.create(name)
+      puts "provisioned!"
+      invoke :status
     end
 
     desc "up", "Create a new pairhost or start your stopped pairhost"
