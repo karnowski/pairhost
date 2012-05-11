@@ -62,6 +62,7 @@ module Pairhost
     File.open(File.expand_path('~/.pairhost/instance'), "w") do |f|
       f.write(instance_id)
     end
+    @instance_id = nil
   end
 
   def self.start(server)
@@ -77,11 +78,12 @@ module Pairhost
   def self.fetch!
     server = fetch
     abort "pairhost: No instance found. Please create or attach to one." if server.nil?
+    server
   end
 
   def self.fetch
     config
-    connection.servers.get(instance_id) if instance_id
+    return instance_id.nil? ? nil : connection.servers.get(instance_id)
   end
 
   class CLI < Thor
@@ -102,17 +104,19 @@ module Pairhost
       end
     end
 
-    desc "create", "Provision a new pairhost; all future commands affect this pairhost"
-    def create
-      invoke :verify
-      initials = `git config user.initials`.chomp.split("/").map(&:upcase).join(" ")
-      default_name = "something1 #{initials}"
-      name = ask_with_default("What to name your pairhost? [#{default_name}]", default_name)
-      puts "Name will be: #{name}"
-      puts "Provisioning..."
+    desc "create [NAME]", "Provision a new pairhost; all future commands affect this pairhost"
+    def create(name=nil)
+      invoke :verify, []
+
+      if name == nil
+        initials = `git config user.initials`.chomp.split("/").map(&:upcase).join(" ")
+        name = "Pairhost (#{initials})"
+      end
+
+      puts "Provisioning \"#{name}\"..."
       server = Pairhost.create(name)
       puts "provisioned!"
-      invoke :status
+      invoke :status, []
     end
 
     map "start" => :resume
@@ -176,7 +180,6 @@ module Pairhost
       invoke :verify
       server = Pairhost.fetch!
       confirm = ask("Type 'yes' to confirm deleting '#{server.tags['Name']}'.\n>")
-
       return unless confirm == "yes"
 
       puts "Destroying..."
