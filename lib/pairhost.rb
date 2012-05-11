@@ -92,33 +92,11 @@ module Pairhost
       Pairhost.config
     end
 
-    desc "ssh", "SSH to your pairhost"
-    def ssh
+    desc "init", "Setup your ~/.pairhost directory with default config"
+    def init
       invoke :verify
-      server = Pairhost.fetch!
-      exec "ssh -A -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=QUIET pair@#{server.dns_name}"
-    end
-
-    desc "status", "Print the status of your pairhost"
-    def status
-      invoke :verify
-      server = Pairhost.fetch!
-      puts "#{server.id}: #{server.tags['Name']}"
-      puts "State: #{server.state}"
-      puts server.dns_name if server.dns_name
-    end
-
-    map "start" => :resume
-
-    desc "resume", "Start a stopped pairhost"
-    def resume
-      invoke :verify
-      server = Pairhost.fetch!
-      puts "Starting..."
-      Pairhost.start(server.reload)
-      puts "started!"
-
-      invoke :status
+      FileUtils.mkdir_p File.dirname(Pairhost.config_file)
+      FileUtils.cp(File.dirname(__FILE__) + '/../config.example.yml', Pairhost.config_file)
     end
 
     desc "create", "Provision a new pairhost; all future commands affect this pairhost"
@@ -134,6 +112,19 @@ module Pairhost
       invoke :status
     end
 
+    map "start" => :resume
+
+    desc "resume", "Start a stopped pairhost"
+    def resume
+      invoke :verify
+      server = Pairhost.fetch!
+      puts "Starting..."
+      Pairhost.start(server.reload)
+      puts "started!"
+
+      invoke :status
+    end
+
     desc "up", "Create a new pairhost or start your stopped pairhost"
     def up
       invoke :verify
@@ -144,6 +135,22 @@ module Pairhost
       else
         invoke :create
       end
+    end
+
+    desc "status", "Print the status of your pairhost"
+    def status
+      invoke :verify
+      server = Pairhost.fetch!
+      puts "#{server.id}: #{server.tags['Name']}"
+      puts "State: #{server.state}"
+      puts server.dns_name if server.dns_name
+    end
+
+    desc "ssh", "SSH to your pairhost"
+    def ssh
+      invoke :verify
+      server = Pairhost.fetch!
+      exec "ssh -A -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=QUIET pair@#{server.dns_name}"
     end
 
     map "halt" => :stop
@@ -157,21 +164,6 @@ module Pairhost
       puts "Shutting down..."
       Pairhost.stop(server)
       puts "shutdown!"
-    end
-
-    desc "attach", "All future commands affect this pairhost"
-    def attach
-      invoke :verify
-      instance_id = ask("EC2 Instance?")
-      Pairhost.write_instance_id(instance_id)
-      invoke :status
-    end
-
-    desc "detach", "Forget the currently-attached pairhost"
-    def detach
-      invoke :verify
-      # TODO implement
-      puts "Coming soon..."
     end
 
     map "terminate" => :destroy
@@ -190,15 +182,23 @@ module Pairhost
       puts "destroyed!"
     end
 
-    desc "init", "Setup your ~/.pairhost directory with default config"
-    def init
-      invoke :verify
-      FileUtils.mkdir_p File.dirname(Pairhost.config_file)
-      FileUtils.cp(File.dirname(__FILE__) + '/../config.example.yml', Pairhost.config_file)
-    end
-
     desc "provision", "Freshen the Chef recipes"
     def provision
+      invoke :verify
+      # TODO implement
+      puts "Coming soon..."
+    end
+
+    desc "attach", "All future commands affect this pairhost"
+    def attach
+      invoke :verify
+      instance_id = ask("EC2 Instance?")
+      Pairhost.write_instance_id(instance_id)
+      invoke :status
+    end
+
+    desc "detach", "Forget the currently-attached pairhost"
+    def detach
       invoke :verify
       # TODO implement
       puts "Coming soon..."
