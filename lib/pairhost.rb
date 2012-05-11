@@ -19,13 +19,11 @@ module Pairhost
   end
 
   def self.instance_id
-    @instance_id ||= begin
-      file = File.expand_path('~/.pairhost/instance')
-      unless File.exists?(file)
-        abort "No pairhost instance found. Please create or attach to one."
-      end
-      File.read(file).chomp
-    end
+    return @instance_id unless @instance_id.nil?
+
+    file = File.expand_path('~/.pairhost/instance')
+    @instance_id = File.read(file).chomp if File.exists?(file)
+    return @instance_id
   end
 
   def self.connection
@@ -76,7 +74,8 @@ module Pairhost
     server.wait_for { state == "stopped" }
   end
 
-  def self.fetch
+  def self.fetch(complain_on_nil = true)
+    abort "No pairhost instance found. Please create or attach to one." if complain_on_nil && instance_id.nil?
     connection.servers.get(instance_id) if instance_id
   end
 
