@@ -4,23 +4,35 @@ require 'fileutils'
 def ensure_config_file
   config_file = File.expand_path('~/.pairhost/config.yml')
   return if File.exist?(config_file)
-  puts "Pairhost config file was NOT found.  Aborting."
-  abort
+  abort "Pairhost config file was NOT found."
+end
+
+def safely_move(source, target)
+  if File.exist?(source)
+    FileUtils.rm_rf(target)
+    FileUtils.mv(source, target)
+  end
 end
 
 describe Pairhost do
   context "when NO pairhost config is present" do
+    let(:config_dir)  { File.expand_path('~/.pairhost') }
+    let(:backup_dir)  { File.expand_path('~/.pairhost_test_backup') }
     let(:config_file) { File.expand_path('~/.pairhost/config.yml') }
-    let(:config_dir) { File.expand_path('~/.pairhost') }
-    let(:backup_dir) { File.expand_path('~/.pairhost_test_backup') }
 
-    before(:all) { FileUtils.mv(config_dir, backup_dir) if File.exist?(config_dir) }
-    after(:all)  { FileUtils.mv(backup_dir, config_dir) if File.exist?(backup_dir) }
+    before(:all) { safely_move config_dir, backup_dir }
+    after(:all)  { safely_move backup_dir, config_dir }
 
-    %w{create up provision attach detach status ssh resume stop destroy}.each do |method|
-      it "#{method} returns an error message and failure exit code" do
+    the "attach command returns an error message and failure exit code" do
+      pairhost "attach some-instance"
+      stderr.should == "pairhost: No config found. First run 'pairhost init'.\n"
+      process.should_not be_success
+    end
+
+    %w{create up provision detach status ssh resume stop destroy}.each do |method|
+      the "#{method} command returns an error message and failure exit code" do
         pairhost method
-        stderr.should == "No pairhost config found. First run 'pairhost init'.\n"
+        stderr.should == "pairhost: No config found. First run 'pairhost init'.\n"
         process.should_not be_success
       end
     end
@@ -36,7 +48,16 @@ describe Pairhost do
   end
 
   context "when a valid pairhost config is present" do
+    # NOTE: this assumes that as a developer you're also
+    # a user of pairhost and have already called "pairhost init"
+    # and configured real AWS credentials.
     before(:all) { ensure_config_file }
+
+    the "init command complains that the config is already present" do
+      pairhost "init"
+      stderr.should == "pairhost: Already initialized.\n"
+      process.should be_success
+    end
 
     context "when an instance has NOT been provisioned" do
       let(:instance_file) { File.expand_path('~/.pairhost/instance') }
@@ -47,15 +68,14 @@ describe Pairhost do
 
       # create --> asks to confirm creation
       # up --> asks to confirm creation
-      # init --> should complain that ~/.pairhost already exists
       # attach --> multiple branches; with instance id specific and without
       # provision --> not implemented yet
       # detach --> not implemented yet
 
       %w{status ssh resume stop destroy}.each do |method|
-        it "#{method} returns an error message and failure exit code" do
+        the "#{method} command returns an error message and failure exit code" do
           pairhost method
-          stderr.should == "No pairhost instance found. Please create or attach to one.\n"
+          stderr.should == "pairhost: No instance found. Please create or attach to one.\n"
           process.should_not be_success
         end
       end

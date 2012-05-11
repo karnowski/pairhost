@@ -12,7 +12,7 @@ module Pairhost
   def self.config
     @config ||= begin
       unless File.exists?(config_file)
-        abort "No pairhost config found. First run 'pairhost init'."
+        abort "pairhost: No config found. First run 'pairhost init'."
       end
       YAML.load_file(config_file)
     end
@@ -76,7 +76,7 @@ module Pairhost
 
   def self.fetch!
     server = fetch
-    abort "No pairhost instance found. Please create or attach to one." if server.nil?
+    abort "pairhost: No instance found. Please create or attach to one." if server.nil?
   end
 
   def self.fetch
@@ -94,8 +94,12 @@ module Pairhost
 
     desc "init", "Setup your ~/.pairhost directory with default config"
     def init
-      FileUtils.mkdir_p File.dirname(Pairhost.config_file)
-      FileUtils.cp(File.dirname(__FILE__) + '/../config.example.yml', Pairhost.config_file)
+      if File.exists?(Pairhost.config_file)
+        STDERR.puts "pairhost: Already initialized."
+      else
+        FileUtils.mkdir_p File.dirname(Pairhost.config_file)
+        FileUtils.cp(File.dirname(__FILE__) + '/../config.example.yml', Pairhost.config_file)
+      end
     end
 
     desc "create", "Provision a new pairhost; all future commands affect this pairhost"
@@ -188,12 +192,11 @@ module Pairhost
       puts "Coming soon..."
     end
 
-    desc "attach", "All future commands affect this pairhost"
-    def attach
-      invoke :verify
-      instance_id = ask("EC2 Instance?")
+    desc "attach INSTANCE", "All future commands affect the pairhost with the given EC2 instance ID"
+    def attach(instance_id)
+      invoke :verify, []
       Pairhost.write_instance_id(instance_id)
-      invoke :status
+      invoke :status, []
     end
 
     desc "detach", "Forget the currently-attached pairhost"

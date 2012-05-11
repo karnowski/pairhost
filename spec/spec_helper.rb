@@ -7,6 +7,7 @@ RSpec.configure do |config|
   config.filter_run :focused => true
   config.filter_run_excluding :disabled => true
   config.alias_example_to :fit, :focused => true
+  config.alias_example_to :the
   config.color_enabled = true
 end
 
