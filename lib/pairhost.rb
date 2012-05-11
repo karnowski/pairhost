@@ -74,23 +74,35 @@ module Pairhost
     server.wait_for { state == "stopped" }
   end
 
-  def self.fetch(complain_on_nil = true)
-    abort "No pairhost instance found. Please create or attach to one." if complain_on_nil && instance_id.nil?
+  def self.fetch!
+    server = fetch
+    abort "No pairhost instance found. Please create or attach to one." if server.nil?
+  end
+
+  def self.fetch
+    config
     connection.servers.get(instance_id) if instance_id
   end
 
   class CLI < Thor
     include Thor::Actions
 
+    desc "verify", "Verify the config is in place"
+    def verify
+      Pairhost.config
+    end
+
     desc "ssh", "SSH to your pairhost"
     def ssh
-      server = Pairhost.fetch
+      invoke :verify
+      server = Pairhost.fetch!
       exec "ssh -A -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=QUIET pair@#{server.dns_name}"
     end
 
     desc "status", "Print the status of your pairhost"
     def status
-      server = Pairhost.fetch
+      invoke :verify
+      server = Pairhost.fetch!
       puts "#{server.id}: #{server.tags['Name']}"
       puts "State: #{server.state}"
       puts server.dns_name if server.dns_name
@@ -100,7 +112,8 @@ module Pairhost
 
     desc "resume", "Start a stopped pairhost"
     def resume
-      server = Pairhost.fetch
+      invoke :verify
+      server = Pairhost.fetch!
       puts "Starting..."
       Pairhost.start(server.reload)
       puts "started!"
@@ -110,6 +123,7 @@ module Pairhost
 
     desc "create", "Provision a new pairhost; all future commands affect this pairhost"
     def create
+      invoke :verify
       initials = `git config user.initials`.chomp.split("/").map(&:upcase).join(" ")
       default_name = "something1 #{initials}"
       name = ask_with_default("What to name your pairhost? [#{default_name}]", default_name)
@@ -122,6 +136,7 @@ module Pairhost
 
     desc "up", "Create a new pairhost or start your stopped pairhost"
     def up
+      invoke :verify
       server = Pairhost.fetch
 
       if server
@@ -137,7 +152,8 @@ module Pairhost
 
     desc "stop", "Stop your pairhost"
     def stop
-      server = Pairhost.fetch
+      invoke :verify
+      server = Pairhost.fetch!
       puts "Shutting down..."
       Pairhost.stop(server)
       puts "shutdown!"
@@ -145,16 +161,25 @@ module Pairhost
 
     desc "attach", "All future commands affect this pairhost"
     def attach
+      invoke :verify
       instance_id = ask("EC2 Instance?")
       Pairhost.write_instance_id(instance_id)
       invoke :status
+    end
+
+    desc "detach", "Forget the currently-attached pairhost"
+    def detach
+      invoke :verify
+      # TODO implement
+      puts "Coming soon..."
     end
 
     map "terminate" => :destroy
 
     desc "destroy", "Terminate your pairhost"
     def destroy
-      server = Pairhost.fetch
+      invoke :verify
+      server = Pairhost.fetch!
       confirm = ask("Type 'yes' to confirm deleting '#{server.tags['Name']}'.\n>")
 
       return unless confirm == "yes"
@@ -167,13 +192,16 @@ module Pairhost
 
     desc "init", "Setup your ~/.pairhost directory with default config"
     def init
+      invoke :verify
       FileUtils.mkdir_p File.dirname(Pairhost.config_file)
       FileUtils.cp(File.dirname(__FILE__) + '/../config.example.yml', Pairhost.config_file)
     end
 
     desc "provision", "Freshen the Chef recipes"
     def provision
-      puts "coming soon..."
+      invoke :verify
+      # TODO implement
+      puts "Coming soon..."
     end
 
     private
