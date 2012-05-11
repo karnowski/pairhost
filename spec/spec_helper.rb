@@ -9,3 +9,9 @@ RSpec.configure do |config|
   config.alias_example_to :fit, :focused => true
   config.color_enabled = true
 end
+
+RSpec::Matchers.define :exist_on_filesystem do |name|
+  match do |name|
+    File.exist?(name)
+  end
+end

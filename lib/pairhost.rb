@@ -94,7 +94,6 @@ module Pairhost
 
     desc "init", "Setup your ~/.pairhost directory with default config"
     def init
-      invoke :verify
       FileUtils.mkdir_p File.dirname(Pairhost.config_file)
       FileUtils.cp(File.dirname(__FILE__) + '/../config.example.yml', Pairhost.config_file)
     end

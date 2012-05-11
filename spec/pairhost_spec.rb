@@ -10,13 +10,12 @@ end
 
 describe Pairhost do
   context "when NO pairhost config is present" do
+    let(:config_file) { File.expand_path('~/.pairhost/config.yml') }
     let(:config_dir) { File.expand_path('~/.pairhost') }
     let(:backup_dir) { File.expand_path('~/.pairhost_test_backup') }
 
     before(:all) { FileUtils.mv(config_dir, backup_dir) if File.exist?(config_dir) }
     after(:all)  { FileUtils.mv(backup_dir, config_dir) if File.exist?(backup_dir) }
-
-    # init
 
     %w{create up provision attach detach status ssh resume stop destroy}.each do |method|
       it "#{method} returns an error message and failure exit code" do
@@ -24,6 +23,15 @@ describe Pairhost do
         stderr.should == "No pairhost config found. First run 'pairhost init'.\n"
         process.should_not be_success
       end
+    end
+
+    it "init creates a config directory and file" do
+      config_dir.should_not exist_on_filesystem
+
+      pairhost "init"
+
+      config_dir.should exist_on_filesystem
+      config_file.should exist_on_filesystem
     end
   end
 
