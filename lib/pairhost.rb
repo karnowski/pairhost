@@ -209,6 +209,15 @@ module Pairhost
       puts "Coming soon..."
     end
 
+    desc 'list', 'Display list of available instances'
+    def list
+      images = Pairhost.connection.describe_instances.body["reservationSet"]
+      images.each do |image|
+        instance = image['instancesSet'][0]
+        puts "#{instance['instanceId']}  #{instance['tagSet']["Name"]}"
+      end
+    end
+
     private
 
     def ask_with_default(question, default)
