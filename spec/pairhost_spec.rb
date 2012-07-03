@@ -29,7 +29,7 @@ describe Pairhost do
       process.should_not be_success
     end
 
-    %w{create up provision detach status ssh resume stop destroy}.each do |method|
+    %w{create up provision detach status ssh resume stop destroy list}.each do |method|
       the "#{method} command returns an error message and failure exit code" do
         pairhost method
         stderr.should == "pairhost: No config found. First run 'pairhost init'.\n"
