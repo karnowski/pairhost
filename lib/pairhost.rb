@@ -188,6 +188,17 @@ module Pairhost
       puts "destroyed!"
     end
 
+    desc "list", "List all instances on your EC2 account"
+    def list
+      require 'hirb'
+      Hirb.enable
+
+      puts Hirb::Helpers::AutoTable.render Pairhost.connection.servers,
+        :headers => {:tags => 'name', :flavor_id => 'type' },
+        :fields => [:tags, :id, :state, :flavor_id, :created_at, :image_id, :dns_name],
+          :filters => {:tags => lambda {|e| e['Name'] || 'No Name' } }
+    end
+
     desc "provision", "Freshen the Chef recipes"
     def provision
       invoke :verify
