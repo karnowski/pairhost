@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "fog", "1.3.1"
   s.add_runtime_dependency "thor", "~> 0.15.2"
   s.add_runtime_dependency "hirb", "~> 0.6.2"
+  s.add_runtime_dependency "launchy", "~> 2.1.1"
 
   s.add_development_dependency 'rspec', '~> 2.9.0'
   s.add_development_dependency 'bahia', '~> 0.7.2'
