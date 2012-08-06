@@ -220,6 +220,13 @@ module Pairhost
       puts "Coming soon..."
     end
 
+    desc 'browse', 'Launch browser and navigate to instance address. Optionally provide a port'
+    def browse(port=80)
+      require 'launchy'
+      puts 'Launching browser...'
+      Launchy.open("http://#{Pairhost.fetch.dns_name}:#{port}")
+    end
+
     private
 
     def ask_with_default(question, default)
