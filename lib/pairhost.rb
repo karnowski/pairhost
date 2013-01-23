@@ -150,7 +150,10 @@ module Pairhost
       server = Pairhost.fetch!
       puts "#{server.id}: #{server.tags['Name']}"
       puts "State: #{server.state}"
-      puts server.dns_name if server.dns_name
+      if server.dns_name
+        puts server.dns_name
+        puts Socket.getaddrinfo(server.dns_name, "http").first[3]
+      end
     end
 
     desc "ssh", "SSH to your pairhost"
