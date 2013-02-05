@@ -99,8 +99,13 @@ module Pairhost
       if File.exists?(Pairhost.config_file)
         STDERR.puts "pairhost: Already initialized."
       else
+        puts "Creating ~/.pairhost directory"
         FileUtils.mkdir_p File.dirname(Pairhost.config_file)
+
+        puts "Copying example.yml file to ~/.pairhost directory"
         FileUtils.cp(File.dirname(__FILE__) + '/../config.example.yml', Pairhost.config_file)
+
+        puts "Edit ~/.pairhost/config.yml to use your real EC2 & AMI settings"
       end
     end
 
