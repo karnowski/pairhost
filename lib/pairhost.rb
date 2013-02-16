@@ -3,6 +3,7 @@ require 'fog'
 require 'thor'
 require 'yaml'
 require 'fileutils'
+require_relative 'credential'
 
 module Pairhost
   def self.config_file
@@ -15,6 +16,7 @@ module Pairhost
         abort "pairhost: No config found. First run 'pairhost init'."
       end
       YAML.load_file(config_file)
+      @credential = Credential.new(config_file)
     end
   end
 
@@ -35,8 +37,8 @@ module Pairhost
 
     @connection = Fog::Compute.new(
       :provider              => config['provider'],
-      :aws_secret_access_key => config['aws_secret_access_key'],
-      :aws_access_key_id     => config['aws_access_key_id'],
+      :aws_secret_access_key => @credential.secret_access_key,
+      :aws_access_key_id     => @credential.access_key_id,
     )
   end
 
@@ -99,8 +101,13 @@ module Pairhost
       if File.exists?(Pairhost.config_file)
         STDERR.puts "pairhost: Already initialized."
       else
+        puts "Creating ~/.pairhost directory"
         FileUtils.mkdir_p File.dirname(Pairhost.config_file)
+
+        puts "Copying example.yml file to ~/.pairhost directory"
         FileUtils.cp(File.dirname(__FILE__) + '/../config.example.yml', Pairhost.config_file)
+
+        puts "Edit ~/.pairhost/config.yml to use your real EC2 & AMI settings"
       end
     end
 
