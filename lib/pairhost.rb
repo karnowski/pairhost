@@ -15,8 +15,8 @@ module Pairhost
       unless File.exists?(config_file)
         abort "pairhost: No config found. First run 'pairhost init'."
       end
-      YAML.load_file(config_file)
       @credential = Credential.new(config_file)
+      YAML.load_file(config_file)
     end
   end
 
