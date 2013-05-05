@@ -21,6 +21,9 @@ Manage EC2 instances for remote pairing the style that Relevance prefers.
     # up will resume a down pairhost, but if none will create one
     pairhost up
 
+    # ssh will resume a down pairhost, then SSH to it
+    pairhost ssh
+
     # all future commands will affect the given instance
     pairhost attach instance-id
 

@@ -167,6 +167,14 @@ module Pairhost
     def ssh
       invoke :verify
       server = Pairhost.fetch!
+
+      abort "Server is currently #{server.state}" if ["stopping"].include? server.state
+
+      if ["pending", "stopped"].include? server.state
+        invoke :up
+        server.wait_for { ready? }
+      end
+
       exec "ssh -A -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=QUIET pair@#{server.dns_name}"
     end
 
