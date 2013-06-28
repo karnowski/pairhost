@@ -37,8 +37,9 @@ module Pairhost
 
     @connection = Fog::Compute.new(
       :provider              => config['provider'],
+      :region                => config['region'],
       :aws_secret_access_key => @credential.secret_access_key,
-      :aws_access_key_id     => @credential.access_key_id,
+      :aws_access_key_id     => @credential.access_key_id
     )
   end
 
