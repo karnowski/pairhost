@@ -81,6 +81,14 @@ describe Pairhost do
       end
     end
 
+    context "using the non default region" do
+      let(:config_file) {File.expand_path('../data/config_with_region.yml', __FILE__)}
+      it 'should return specified region' do
+        Pairhost.stub(:config_file).and_return(config_file)
+        Pairhost.connection.region.should be == 'us-west-2'
+      end
+    end
+
     context "when an instance has been provisioned" do
       # TODO: make sure the instance_id file exists;
       # provision an EC2 instance?
