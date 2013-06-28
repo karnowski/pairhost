@@ -1,4 +1,8 @@
 provider: 'AWS'
+# optionally specify Region for your AMI
+# FOG gem defaults AWS to 'us-east-1'
+# region: 'us-west-2'
+
 aws_access_key_id: 'YOUR_SECRET_ACCESS_KEY_ID'
 aws_secret_access_key: 'YOUR_SECRET_ACCESS_KEY'
 # specify another config file for your aws credentials
