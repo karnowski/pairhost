@@ -9,7 +9,7 @@ region: 'us-west-2'
 # in case you want to keep them encrypted. This file
 # will take presedence if access keys are defined in both
 # files
-aws_credential_file: '~/open_source/pairhost/spec/data/aws_credentials.yml'
+aws_credential_file: 'spec/data/aws_credentials.yml'
 
 ami_id: 'SOME-AMI'
 flavor_id: 'm1.large'

@@ -5,7 +5,7 @@ aws_secret_access_key: 'YOUR_SECRET_ACCESS_KEY'
 # in case you want to keep them encrypted. This file
 # will take presedence if access keys are defined in both
 # files
-aws_credential_file: '~/dev/pairhost/spec/data/aws_credentials.yml'
+aws_credential_file: 'spec/data/aws_credentials.yml'
 
 ami_id: 'SOME-AMI'
 flavor_id: 'm1.large'
