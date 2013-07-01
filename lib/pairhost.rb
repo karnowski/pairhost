@@ -173,7 +173,7 @@ module Pairhost
 
       if ["pending", "stopped"].include? server.state
         invoke :up
-        server.wait_for { ready? }
+        server.wait_for { sshable? }
       end
 
       exec "ssh -A -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=QUIET pair@#{server.dns_name}"
