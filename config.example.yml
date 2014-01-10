@@ -7,7 +7,7 @@ aws_access_key_id: 'YOUR_SECRET_ACCESS_KEY_ID'
 aws_secret_access_key: 'YOUR_SECRET_ACCESS_KEY'
 # specify another config file for your aws credentials
 # in case you want to keep them encrypted. This file
-# will take presedence if access keys are defined in both
+# will take precedence if access keys are defined in both
 # files
 # aws_credential_file: '~/YOUR_AWS_CREDENTIAL_FILE'
 
