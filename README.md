@@ -29,3 +29,11 @@ Manage EC2 instances for remote pairing the style that Relevance prefers.
 
     # destroy and terminate are aliases
     pairhost destroy
+
+## How to Test
+    bundler install
+    rake
+
+## How to Update Gem on rubygems.org
+    rake build
+    gem push pkg/pairhost
